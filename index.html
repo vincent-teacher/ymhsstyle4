@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>楊梅高中梅岡風</title>
+<meta name="description" content="楊梅高中校刊《梅岡風》數位典藏：歷年各期版面線上閱讀、全文搜尋、時光軸與互動小遊戲。">
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+<!-- 飄落梅花背景 -->
+<canvas id="petals" aria-hidden="true"></canvas>
+
+<header class="topbar">
+  <a class="brand" href="#/" data-sfx="click" aria-label="回首頁">
+    <img class="brand-emblem" src="assets/emblem.png" alt="楊梅高中校徽">
+    <span class="brand-text">
+      <span class="brand-school">楊梅高中</span>
+      <img class="brand-logo ink" src="assets/梅岡風Logo.png" alt="梅岡風">
+    </span>
+  </a>
+  <nav class="mainnav" id="mainnav">
+    <a href="#/" data-nav="home"><svg class="ic"><use href="#i-home"/></svg>首頁</a>
+    <a href="#/issues" data-nav="issues"><svg class="ic"><use href="#i-grid"/></svg>歷年期刊</a>
+    <a href="#/timeline" data-nav="timeline"><svg class="ic"><use href="#i-clock"/></svg>時光軸</a>
+    <a href="#/search" data-nav="search"><svg class="ic"><use href="#i-search"/></svg>全文搜尋</a>
+    <a href="#/game" data-nav="game"><svg class="ic"><use href="#i-game"/></svg>猜猜哪一年</a>
+    <a href="#/me" data-nav="me"><svg class="ic"><use href="#i-foot"/></svg>我的足跡</a>
+    <a href="#/help" data-nav="help"><svg class="ic"><use href="#i-help"/></svg>說明</a>
+  </nav>
+  <div class="tools">
+    <form class="quicksearch" id="quicksearch" role="search">
+      <svg class="ic"><use href="#i-search"/></svg>
+      <input type="search" id="qs" placeholder="搜尋校刊內文…" aria-label="搜尋校刊內文">
+    </form>
+    <button class="iconbtn" id="btnSound" title="音效開關" aria-label="音效開關"><svg class="ic"><use href="#i-sound"/></svg></button>
+    <button class="iconbtn" id="btnSettings" title="設定" aria-label="設定"><svg class="ic"><use href="#i-gear"/></svg></button>
+    <button class="iconbtn menu-toggle" id="btnMenu" title="選單" aria-label="選單"><svg class="ic"><use href="#i-menu"/></svg></button>
+  </div>
+</header>
+
+<main id="app" tabindex="-1"></main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="assets/emblem.png" alt="" class="footer-emblem">
+    <div>
+      <p class="footer-title">楊梅高中梅岡風 · 校刊數位典藏</p>
+      <p class="footer-sub">國立楊梅高級中學 ｜ 本站收錄 <b id="footIssues">–</b> 期、<b id="footPages">–</b> 個版面 ｜ 資料更新：<span id="footBuilt">–</span></p>
+    </div>
+  </div>
+</footer>
+
+<!-- 閱讀器 -->
+<div class="reader" id="reader" hidden>
+  <div class="reader-bar">
+    <button class="rbtn" id="rClose" title="關閉 (Esc)"><svg class="ic"><use href="#i-close"/></svg><span>關閉</span></button>
+    <div class="reader-title" id="rTitle"></div>
+    <div class="reader-actions">
+      <button class="rbtn" id="rZoomOut" title="縮小 (-)"><svg class="ic"><use href="#i-minus"/></svg></button>
+      <span class="zoomval" id="rZoomVal">100%</span>
+      <button class="rbtn" id="rZoomIn" title="放大 (+)"><svg class="ic"><use href="#i-plus"/></svg></button>
+      <button class="rbtn" id="rFit" title="符合視窗 (0)"><svg class="ic"><use href="#i-fit"/></svg></button>
+      <button class="rbtn" id="rText" title="文字面板 (T)"><svg class="ic"><use href="#i-text"/></svg><span>文字</span></button>
+      <button class="rbtn" id="rFav" title="收藏此版 (F)"><svg class="ic"><use href="#i-heart"/></svg></button>
+      <a class="rbtn" id="rOrig" target="_blank" title="開啟原始高解析檔"><svg class="ic"><use href="#i-download"/></svg><span>原檔</span></a>
+      <button class="rbtn" id="rFull" title="全螢幕"><svg class="ic"><use href="#i-full"/></svg></button>
+    </div>
+  </div>
+  <div class="reader-body">
+    <button class="flip prev" id="rPrev" title="上一版 (←)"><svg class="ic"><use href="#i-left"/></svg></button>
+    <div class="stage" id="rStage">
+      <div class="canvas" id="rCanvas">
+        <img id="rImg" alt="">
+        <div class="boxes" id="rBoxes"></div>
+      </div>
+      <div class="loading" id="rLoading"><span class="spinner"></span>翻頁中…</div>
+    </div>
+    <button class="flip next" id="rNext" title="下一版 (→)"><svg class="ic"><use href="#i-right"/></svg></button>
+    <aside class="textpanel" id="rPanel" hidden>
+      <div class="tp-head">
+        <b>本版文字</b><small>（電腦自動辨識，可能有誤字）</small>
+        <input type="search" id="rFind" placeholder="在本版中尋找…">
+      </div>
+      <div class="tp-body" id="rPanelBody"></div>
+    </aside>
+  </div>
+  <div class="reader-strip" id="rStrip"></div>
+  <div class="reader-hint">滾輪／雙指縮放 · 拖曳移動 · 雙擊放大 · ← → 翻頁</div>
+</div>
+
+<!-- 設定 -->
+<div class="modal" id="settings" hidden>
+  <div class="modal-card" role="dialog" aria-labelledby="setTitle">
+    <button class="modal-x" data-close><svg class="ic"><use href="#i-close"/></svg></button>
+    <h2 id="setTitle"><svg class="ic"><use href="#i-gear"/></svg>網站設定</h2>
+    <div class="set-list" id="setList"></div>
+    <div class="set-foot">
+      <button class="btn ghost" id="setReset">恢復預設</button>
+      <button class="btn danger" id="setClear">清除我的足跡</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- 圖示 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v5.4l4 2.3-1 1.7-5-2.9V7z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></symbol>
+    <symbol id="i-game" viewBox="0 0 24 24"><path d="M7 6h10a5 5 0 0 1 5 5v2a5 5 0 0 1-9 3h-2a5 5 0 0 1-9-3v-2a5 5 0 0 1 5-5zm0 3v2H5v2h2v2h2v-2h2v-2H9V9zm9 1a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 16 10zm2.5 2.5a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></symbol>
+    <symbol id="i-foot" viewBox="0 0 24 24"><path d="M8 2c1.7 0 3 2 3 4.5S9.7 11 8 11 5 9 5 6.5 6.3 2 8 2zm-.5 10c1.9 0 3 1 3 3v1.5c0 1.4-1.1 2.5-2.5 2.5S5.5 17.9 5.5 16.5V14c0-1.1.9-2 2-2zM16 6c1.7 0 3 2 3 4.5S17.7 15 16 15s-3-2-3-4.5S14.3 6 16 6zm-.5 10c1.1 0 2 .9 2 2v1.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V19c0-1.9 1.1-3 3-3z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1 14v2h2v-2zm1-10a4 4 0 0 0-4 4h2a2 2 0 1 1 3 1.7c-1.2.7-2 1.6-2 3.3h2c0-1 .4-1.4 1.1-1.9A4 4 0 0 0 12 6z"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zm13.6-.4L19 11l2.4-2.4 1.4 1.4-2.4 2.4 2.4 2.4-1.4 1.4L19 13.8l-2.4 2.4-1.4-1.4 2.4-2.4-2.4-2.4z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M10.3 2h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9L2 13.7v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 5h18v2H3zm0 6h18v2H3zm0 6h18v2H3z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M5.6 4.2L12 10.6l6.4-6.4 1.4 1.4-6.4 6.4 6.4 6.4-1.4 1.4-6.4-6.4-6.4 6.4-1.4-1.4 6.4-6.4-6.4-6.4z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M4 11h16v2H4z"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M3 3h7v2H5v5H3zm11 0h7v7h-2V5h-5zM3 14h2v5h5v2H3zm16 0h2v7h-7v-2h5z"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 4h16v3h-2V6h-5v12h2v2H9v-2h2V6H6v1H4z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.3-8-11a4.8 4.8 0 0 1 8-3.6A4.8 4.8 0 0 1 20 10c0 5.7-8 11-8 11z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M11 3h2v9.6l3.3-3.3 1.4 1.4L12 16.4l-5.7-5.7 1.4-1.4 3.3 3.3zM4 18h16v2H4z"/></symbol>
+    <symbol id="i-full" viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M15.4 4.6L8 12l7.4 7.4-1.4 1.4L5.2 12 14 3.2z"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M8.6 4.6L16 12l-7.4 7.4 1.4 1.4 8.8-8.8L10 3.2z"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM12 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7.5 15a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 5c3-1.5 6-1.5 9 .5 3-2 6-2 9-.5v15c-3-1.5-6-1.5-9 .5-3-2-6-2-9-.5zm2 1.3v11c2-.6 4-.4 6 .6v-11c-2-1-4-1.2-6-.6zm14 0c-2-.6-4-.4-6 .6v11c2-1 4-1.2 6-.6z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h3v3H3zm5 0h13v3H8zM3 10.5h3v3H3zm5 0h13v3H8zM3 16h3v3H3zm5 0h13v3H8z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 3l4 5H8v13H6V8H3zm10 18l-4-5h3V3h2v13h3z"/></symbol>
+    <symbol id="i-flower" viewBox="0 0 24 24"><path d="M12 2c1.9 0 3 1.8 2.7 3.8 1.7-1.2 3.9-1 4.8.7s0 3.6-1.9 4.3c1.9.7 2.8 2.7 1.9 4.3s-3.1 1.9-4.8.7c.3 2-.8 3.8-2.7 3.8s-3-1.8-2.7-3.8c-1.7 1.2-3.9 1-4.8-.7s0-3.6 1.9-4.3c-1.9-.7-2.8-2.7-1.9-4.3s3.1-1.9 4.8-.7C9 3.8 10.1 2 12 2zm0 7.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></symbol>
+    <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3h-2a5 5 0 1 1 5 5H3zm0 4h15a3.5 3.5 0 1 1-3.5 3.5h2A1.5 1.5 0 1 0 18 15H3z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 3h12v2h3v3a4 4 0 0 1-4 4h-.4A6 6 0 0 1 13 15v3h4v3H7v-3h4v-3a6 6 0 0 1-3.6-3H7a4 4 0 0 1-4-4V5h3zm0 4H5v1a2 2 0 0 0 1.3 1.9A6 6 0 0 1 6 9zm12 0v2c0 .3 0 .6-.1.9A2 2 0 0 0 19 8V7z"/></symbol>
+  </defs>
+</svg>
+
+<script src="data/issues.js?v=1790555127"></script>
+<script src="app.js?v=4"></script>
+<!-- OCR 全文較大，由 app.js 於首頁顯示後再載入 -->
+<meta name="mgf-text" content="data/text.js?v=1790555127">
+</body>
+</html>
